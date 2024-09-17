@@ -2,46 +2,51 @@ package com.android.fetch_rewards
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
-import androidx.activity.compose.setContent
-import androidx.activity.enableEdgeToEdge
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.tooling.preview.Preview
-import com.android.fetch_rewards.ui.theme.Fetch_RewardsTheme
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import com.android.fetch_rewards.network.RetrofitInstance
+import com.android.fetch_rewards.ui.ItemAdapter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class MainActivity : ComponentActivity() {
+
+    private lateinit var recyclerView: RecyclerView
+    private lateinit var itemAdapter: ItemAdapter
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
-        setContent {
-            Fetch_RewardsTheme {
-                Scaffold(modifier = Modifier.fillMaxSize()) { innerPadding ->
-                    Greeting(
-                        name = "Android",
-                        modifier = Modifier.padding(innerPadding)
-                    )
+        setContentView(R.layout.activity_main)
+
+        recyclerView = findViewById(R.id.recyclerView)
+        recyclerView.layoutManager = LinearLayoutManager(this)
+        itemAdapter = ItemAdapter(emptyList())
+        recyclerView.adapter = itemAdapter
+
+        fetchItems()
+    }
+
+    private fun fetchItems() {
+        CoroutineScope(Dispatchers.IO).launch {
+            try {
+                val apiService = RetrofitInstance.apiService
+                val items = apiService.getItems()
+
+                // Filter out items with blank or null names
+                val filteredItems = items.filter { !it.name.isNullOrBlank() }
+
+                // Group items by listID and sort them by listID and name
+                val groupAndSortedItems = filteredItems.sortedWith(compareBy( {it.listId }, { it.name }))
+
+                withContext(Dispatchers.Main) {
+                    itemAdapter
                 }
+            } catch (e: Exception) {
+                e.printStackTrace()
             }
         }
     }
 }
 
-@Composable
-fun Greeting(name: String, modifier: Modifier = Modifier) {
-    Text(
-        text = "Hello $name!",
-        modifier = modifier
-    )
-}
-
-@Preview(showBackground = true)
-@Composable
-fun GreetingPreview() {
-    Fetch_RewardsTheme {
-        Greeting("Android")
-    }
-}
