@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.android.fetch_rewards.network.RetrofitInstance
 import com.android.fetch_rewards.ui.ItemAdapter
+import com.google.android.material.snackbar.Snackbar
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -16,10 +17,14 @@ class MainActivity : ComponentActivity() {
     private lateinit var recyclerView: RecyclerView
     private lateinit var itemAdapter: ItemAdapter
 
+    // To display Snackbar or failure
+    private lateinit var rootView: RecyclerView
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
+        rootView = findViewById(R.id.recyclerView)
         recyclerView = findViewById(R.id.recyclerView)
         recyclerView.layoutManager = LinearLayoutManager(this)
         itemAdapter = ItemAdapter(emptyList())
@@ -44,9 +49,16 @@ class MainActivity : ComponentActivity() {
                     itemAdapter
                 }
             } catch (e: Exception) {
-                e.printStackTrace()
+                // Display an error message using Snackbar
+                withContext(Dispatchers.Main) {
+                    showError("Failed to fetch items. Please try again.")
+                }
             }
         }
+    }
+
+    private fun showError(message: String) {
+        Snackbar.make(rootView, message, Snackbar.LENGTH_LONG).show()
     }
 }
 
