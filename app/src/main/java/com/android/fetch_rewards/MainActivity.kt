@@ -41,14 +41,14 @@ class MainActivity : ComponentActivity() {
 
                 // Filter out items with blank or null names
                 val filteredItems = items.filter { !it.name.isNullOrBlank() }
-
-                // Group items by listID and sort them by listID and name
-                val groupAndSortedItems = filteredItems.sortedWith(compareBy( {it.listId }, { it.name }))
+                    .sortedWith(compareBy( {it.listId }, { it.name }))
 
                 withContext(Dispatchers.Main) {
-                    itemAdapter
+                    itemAdapter.updateItems(filteredItems)
                 }
             } catch (e: Exception) {
+                e.printStackTrace()
+
                 // Display an error message using Snackbar
                 withContext(Dispatchers.Main) {
                     showError("Failed to fetch items. Please try again.")
